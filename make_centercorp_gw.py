@@ -93,18 +93,18 @@ def gen_boundingbox(bbox, angle):
     R = np.array([[np.cos(theta), -np.sin(theta)],
                     [np.sin(theta), np.cos(theta)]])
     
-    x1 = bbox[0]
-    x2 = bbox[2]
-    y1 = bbox[1]
-    y2 = bbox[3]
+    x1 = bbox[0] - bbox[2] / 2
+    x2 = bbox[0] + bbox[2] / 2
+    y1 = bbox[1] - bbox[3] / 2
+    y2 = bbox[1] + bbox[3] / 2
     
     points = np.array([[x1, y1],
                        [x2, y1],
                        [x2, y2],
                        [x1, y2]]).T
 
-    cx = (bbox[0] + bbox[2]) / 2
-    cy = (bbox[1] + bbox[3]) / 2
+    cx = bbox[0]
+    cy = bbox[1]
 
     T = np.array([[cx], [cy]])
 
@@ -135,43 +135,44 @@ def main():
         img, target, img_info= dataset[i]
         file_name = target['file_name']
         bbox = target['bboxes']
+        bbox_angle = target['bboxes_angle']
         category = target['category_id']
         img_save_path = os.path.join(img_save, str(i).zfill(5)+'.png')
         label_save_path = os.path.join(label_save, str(i).zfill(5)+'.txt')
         label_angle_save_path = os.path.join(label_angle_save, str(i).zfill(5)+'.txt')
         label_OBB_save_path = os.path.join(label_OBB_save, str(i).zfill(5)+'.txt')
         img_info_save_path = os.path.join(img_info_save, str(i).zfill(5)+'.json')
-
         
-        with open(label_angle_save_path, 'w') as f:
-            for j in range(category.size(0)):
-                # print("%i %.6f %.6f %.6f %.6f" % (category[j], bbox[j][0], bbox[j][1], bbox[j][2], bbox[j][3]))
-                # print(str(np.array(category[j]).astype(np.int32)))
-                cx = (bbox[j][0] + bbox[j][2]) / 2
-                cy = (bbox[j][1] + bbox[j][3]) / 2
-                wid = bbox[j][2] - bbox[j][0]
-                hei = bbox[j][3] - bbox[j][1]
-                angle = target['angle'][j]
-                f.write("%.6f %.6f %.6f %.6f %.6f vehicle %i \n" % (cx, cy, wid, hei, angle, 0))
-            continue
-        
+        # print(bbox_angle)
         # print(img_save_path)
-        cv2.imwrite(img_save_path, img)
-        with open(label_save_path,"w") as f:
-            for j in range(category.size(0)):
+        # cv2.imwrite(img_save_path, img)
+        # save HBB (cx, cy, wid, hei)
+        with open(label_save_path, 'w') as f:
+            for j in range(bbox.shape[0]):
                 # print("%i %.6f %.6f %.6f %.6f" % (category[j], bbox[j][0], bbox[j][1], bbox[j][2], bbox[j][3]))
                 # print(str(np.array(category[j]).astype(np.int32)))
                 cx = (bbox[j][0] + bbox[j][2]) / 2
                 cy = (bbox[j][1] + bbox[j][3]) / 2
                 wid = bbox[j][2] - bbox[j][0]
                 hei = bbox[j][3] - bbox[j][1]
-                    
                 f.write("%i %.6f %.6f %.6f %.6f \n" % (category[j], cx, cy, wid, hei))
+                
+        # save OBB(cx, cy, wid, hei, angle)
+        with open(label_angle_save_path,"w") as f:
+            for j in range(bbox_angle.shape[0]):
+                # print("%i %.6f %.6f %.6f %.6f" % (category[j], bbox[j][0], bbox[j][1], bbox[j][2], bbox[j][3]))
+                # print(str(np.array(category[j]).astype(np.int32)))
+                cx = bbox_angle[j][0]*img.shape[0]
+                cy = bbox_angle[j][1]*img.shape[0]
+                wid = bbox_angle[j][2]*img.shape[0]
+                hei = bbox_angle[j][3]*img.shape[0]
+                angle = bbox_angle[j][4]
+                f.write("%.6f %.6f %.6f %.6f %.6f vehicle %i \n" % (cx, cy, wid, hei, angle, 0))
         
         with open(label_OBB_save_path,"w") as f:
             bbox_OBB = []
-            for k, HBB in enumerate(bbox):
-                points = gen_boundingbox(HBB, target['angle'][k])
+            for k, HBB in enumerate(bbox_angle):
+                points = gen_boundingbox(HBB*img.shape[0], HBB[4])
                 x1 = points[0][0]
                 y1 = points[1][0]
                 x2 = points[0][1]
@@ -197,15 +198,13 @@ def main():
                 if y4 < 0:
                     y4 = 0
                 bbox_OBB.append([x1, y1, x2, y2, x3, y3, x4, y4])
-            for j in range(category.size(0)):
+            for j in range(bbox_angle.shape[0]):
                 # print("%i %.6f %.6f %.6f %.6f" % (category[j], bbox[j][0], bbox[j][1], bbox[j][2], bbox[j][3]))
                 # print(str(np.array(category[j]).astype(np.int32)))
                 f.write("%.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f vehicle %i \n" % (bbox_OBB[j][0], bbox_OBB[j][1], bbox_OBB[j][2], bbox_OBB[j][3], bbox_OBB[j][4], bbox_OBB[j][5], bbox_OBB[j][6], bbox_OBB[j][7], 0))
         
         with open(img_info_save_path, 'w', encoding='utf-8') as f:
             json.dump(img_info, f)
-
-        
     
     
 if __name__ == '__main__':
