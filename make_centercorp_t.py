@@ -145,7 +145,7 @@ def main():
         
         # print(bbox_angle)
         # print(img_save_path)
-        # cv2.imwrite(img_save_path, img)
+        cv2.imwrite(img_save_path, img)
         # save HBB (cx, cy, wid, hei)
         with open(label_save_path, 'w') as f:
             for j in range(bbox.shape[0]):
