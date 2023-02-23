@@ -25,7 +25,7 @@ parser.add_argument("--save_folder", help="root for save directory",
                     default = "/workspace/JS/faster_rcnn_JS/checkpoint", type=str)
 
 parser.add_argument("--train_mode", help="dataset mode ('train_good_weather', 'train_good_and_bad_weather', 'test')",
-                    default='train_good_and_bad_weather', type=str)
+                    default='test', type=str)
 
 
 
@@ -62,7 +62,7 @@ def gen_boundingbox(bbox, angle):
 
 def main():
 
-    root_dir = '/workspace/dataset/radiate_lidar'
+    root_dir = '/workspace/dataset/radiate_lidar_1.5'
     dataset = Radiate_Dataset(data_folder, train_mode, transform=True)
 
     img_radar_save = os.path.join(root_dir, train_mode, 'images_radar')

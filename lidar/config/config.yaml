@@ -38,7 +38,7 @@ lidar_proj:
 lidar_bev_image:
     res: [1152, 1152]
     remove_ground: True
-    ground_thresh: 1.3 # default: 1.5
+    ground_thresh: 1.5 # default: 1.5
     use_ring: True
     use_intensity: False
 

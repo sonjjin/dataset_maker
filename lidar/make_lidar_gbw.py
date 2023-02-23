@@ -62,7 +62,7 @@ def gen_boundingbox(bbox, angle):
 
 def main():
 
-    root_dir = '/workspace/dataset/radiate_lidar'
+    root_dir = '/workspace/dataset/radiate_lidar_1.5'
     dataset = Radiate_Dataset(data_folder, train_mode, transform=True)
 
     img_radar_save = os.path.join(root_dir, train_mode, 'images_radar')

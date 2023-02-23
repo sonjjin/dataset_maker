@@ -85,15 +85,19 @@ class Sequence:
         self.timestamp_lidar = self.load_timestamp(os.path.join(
             self.sequence_path, self.config['lidar_timestamp_file']))
 
-        # get minimum timestamp
-        self.init_timestamp = np.min([self.timestamp_camera['time'][0],
-                                      self.timestamp_lidar['time'][0],
-                                      self.timestamp_radar['time'][0]])
+        # # get minimum timestamp
+        # self.init_timestamp = np.min([self.timestamp_camera['time'][0],
+        #                               self.timestamp_lidar['time'][0],
+        #                               self.timestamp_radar['time'][0]])
 
-        # get end timestamp
-        self.end_timestamp = np.max([self.timestamp_camera['time'][-1],
-                                     self.timestamp_lidar['time'][-1],
-                                     self.timestamp_radar['time'][-1]])
+        # # get end timestamp
+        # self.end_timestamp = np.max([self.timestamp_camera['time'][-1],
+        #                              self.timestamp_lidar['time'][-1],
+        #                              self.timestamp_radar['time'][-1]])
+        self.timestamps = self.timestamp_radar['time']
+        self.init_timestamp = self.timestamp_radar['time'][0]
+        self.end_timestamp = self.timestamp_radar['time'][-1]
+        
 
     def __load_annotations(self):
         if (os.path.exists(self.annotations_path)):
@@ -184,7 +188,7 @@ class Sequence:
 
         return im_lidar
 
-    def get_from_timestamp(self, t, get_sensors=True, get_annotations=True):
+    def get_from_timestamp(self, t, get_sensors=True, get_annotations=False):
         """method to get sensor and annotation information from some timestamp
 
         :param t: This is the timestamp which access the sensors/annotations
@@ -206,9 +210,10 @@ class Sequence:
             t, self.timestamp_radar, self.config['sync']['radar'])
         if (len(self.timestamp_radar['time']) > id_radar + 1):
             t2 = self.timestamp_radar['time'][id_radar + 1]
-        else:
-            return output
-
+        # else:
+        #     return output
+        # print(id_radar)
+        print(id_lidar, ts_lidar, id_radar, ts_radar)
         if get_sensors:
             str_format = '{:06d}'
 
@@ -661,6 +666,7 @@ class Sequence:
         h_height = self.config['lidar_bev_image']['res'][1]/2.0
         cell_res_x = 100.0/h_width
         cell_res_y = 100.0/h_height
+        # print(self.config['lidar_bev_image']['remove_ground'])
         for i in range(lidar.shape[0]):
             if self.config['lidar_bev_image']['remove_ground']:
                 if lidar[i, 2] > -self.config['lidar_bev_image']['ground_thresh']:
@@ -723,6 +729,7 @@ class Sequence:
         :rtype: int
         """
         ind = np.argmin(np.abs(all_timestamps['time'] - t + time_offset))
+        # ind = np.argmin(np.abs(all_timestamps['time'] - t))
         return all_timestamps['frame'][ind], all_timestamps['time'][ind]
 
     def __timestamp_format(self, raw_timestamp):
