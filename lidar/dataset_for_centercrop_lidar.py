@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 import albumentations
 import albumentations.pytorch
-import radiate
+import radiate_modify
 # from torchvision.io import read_image
 
 class Radiate_Dataset(torch.utils.data.Dataset):
@@ -71,8 +71,8 @@ class Radiate_Dataset(torch.utils.data.Dataset):
         target["file_name"] = radar_dict['file_name']
         target["frame_number"] = radar_dict['frame_number']
         target["folder_name"] = radar_dict['folder_name']
-        target["bboxes"] = boxes
-        target["bboxes_angle"] = boxes_angle
+        target["bboxes"] = torch.as_tensor(boxes, dtype=torch.float32)
+        target["bboxes_angle"] = torch.as_tensor(boxes_angle, dtype=torch.float32)
         target["bboxes_OOD"] = bbox_OOD
         target["category_id"] = category_id
         target['image_id'] = radar_dict['image_id']
@@ -81,24 +81,26 @@ class Radiate_Dataset(torch.utils.data.Dataset):
         # labels = category_id
         img_info["folder_name"] = radar_dict['folder_name']
         img_info["frame_number"] = radar_dict['frame_number']
-        
-        radiate_sdk = radiate.Sequence(os.path.join(self.root_dir, target["folder_name"]), config_file='config/config.yaml')
+        # print(target["category_id"])
+        radiate_sdk = radiate_modify.Sequence(os.path.join(self.root_dir, target["folder_name"]), config_file='config/config.yaml')
         timestamp = np.float64(radiate_sdk.timestamp_radar['time'][int(target['frame_number'][:-4])-1])
+        img_info["timestamp"] = timestamp
         output = radiate_sdk.get_from_timestamp(timestamp, get_annotations=False)
+        img_info["lidar_path"] = output['lidar_path']
         lidar_img = output['sensors']['lidar_bev_image']
         if self.transform:
             data_transform = albumentations.Compose([
-                albumentations.CenterCrop(256,256)],
+                albumentations.CenterCrop(512,512)],
                 # albumentations.pytorch.transforms.ToTensorV2()],
                 bbox_params=albumentations.BboxParams(format='pascal_voc', label_fields=['labels']),
                 )
             data_transform_yolo = albumentations.Compose([
-                albumentations.CenterCrop(256,256)],
+                albumentations.CenterCrop(512,512)],
                 # albumentations.pytorch.transforms.ToTensorV2()],
                 bbox_params=albumentations.BboxParams(format='yolo', label_fields=['labels']),
                 )
             data_transform_lidar = albumentations.Compose([
-                albumentations.CenterCrop(256,256)])
+                albumentations.CenterCrop(512,512)])
 
             transformed = data_transform(image = img, bboxes = target['bboxes'], labels = target["category_id"])
             transformed_2 = data_transform_yolo(image = img, bboxes = target['bboxes_angle'], labels = target["category_id"])

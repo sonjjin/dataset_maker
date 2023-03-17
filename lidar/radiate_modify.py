@@ -213,7 +213,7 @@ class Sequence:
         # else:
         #     return output
         # print(id_radar)
-        print(id_lidar, ts_lidar, id_radar, ts_radar)
+        # print(id_lidar, ts_lidar, id_radar, ts_radar)
         if get_sensors:
             str_format = '{:06d}'
 
@@ -229,7 +229,7 @@ class Sequence:
 
             lidar_path = os.path.join(
                 self.sequence_path, 'velo_lidar', str_format.format(id_lidar) + '.csv')
-
+            output['lidar_path'] = lidar_path
             sensors = {}
             if (self.config['use_camera_left_raw'] or
                 self.config['use_camera_right_raw'] or
@@ -278,38 +278,38 @@ class Sequence:
 
             output['sensors'] = sensors
 
-        if (get_annotations):
-            annotations = {}
-            if (self.annotations != None):
+        # if (get_annotations):
+        #     annotations = {}
+        #     if (self.annotations != None):
 
-                if self.config['use_radar_cartesian']:
-                    radar_annotation_id = self.__get_correct_radar_id_from_raw_ind(
-                        id_radar)
-                    radar_annotations = self.get_annotation_from_id(
-                        radar_annotation_id)
-                    annotations['radar_cartesian'] = radar_annotations
+        #         if self.config['use_radar_cartesian']:
+        #             radar_annotation_id = self.__get_correct_radar_id_from_raw_ind(
+        #                 id_radar)
+        #             radar_annotations = self.get_annotation_from_id(
+        #                 radar_annotation_id)
+        #             annotations['radar_cartesian'] = radar_annotations
 
-                if self.config['use_lidar_bev_image']:
-                    annotations['lidar_bev_image'] = self.get_lidar_annotations(
-                        id_radar, self.config['interpolate_bboxes'], t, ts_radar, t2)
+        #         if self.config['use_lidar_bev_image']:
+        #             annotations['lidar_bev_image'] = self.get_lidar_annotations(
+        #                 id_radar, self.config['interpolate_bboxes'], t, ts_radar, t2)
 
-                if self.config['use_camera_left_rect']:
-                    annotations['lidar_bev_image'] = self.get_lidar_annotations(
-                        id_radar, self.config['interpolate_bboxes'], t, ts_radar, t2)
-                    bboxes_3d = self.project_bboxes_to_camera(annotations['lidar_bev_image'],
-                                                              self.calib.left_cam_mat,
-                                                              self.calib.RadarToLeft)
-                    annotations['camera_left_rect'] = bboxes_3d
+        #         if self.config['use_camera_left_rect']:
+        #             annotations['lidar_bev_image'] = self.get_lidar_annotations(
+        #                 id_radar, self.config['interpolate_bboxes'], t, ts_radar, t2)
+        #             bboxes_3d = self.project_bboxes_to_camera(annotations['lidar_bev_image'],
+        #                                                       self.calib.left_cam_mat,
+        #                                                       self.calib.RadarToLeft)
+        #             annotations['camera_left_rect'] = bboxes_3d
 
-                if self.config['use_camera_right_rect']:
-                    annotations['lidar_bev_image'] = self.get_lidar_annotations(
-                        id_radar, self.config['interpolate_bboxes'], t, ts_radar, t2)
-                    bboxes_3d = self.project_bboxes_to_camera(annotations['lidar_bev_image'],
-                                                              self.calib.right_cam_mat,
-                                                              self.calib.RadarToRight)
-                    annotations['camera_right_rect'] = bboxes_3d
+        #         if self.config['use_camera_right_rect']:
+        #             annotations['lidar_bev_image'] = self.get_lidar_annotations(
+        #                 id_radar, self.config['interpolate_bboxes'], t, ts_radar, t2)
+        #             bboxes_3d = self.project_bboxes_to_camera(annotations['lidar_bev_image'],
+        #                                                       self.calib.right_cam_mat,
+        #                                                       self.calib.RadarToRight)
+        #             annotations['camera_right_rect'] = bboxes_3d
 
-            output['annotations'] = annotations
+        #     output['annotations'] = annotations
 
         return output
 
