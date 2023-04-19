@@ -63,12 +63,12 @@ def gen_boundingbox(bbox, angle):
 
 def main():
 
-    root_dir = '/workspace/dataset/radiate_512'
+    root_dir = '/workspace/dataset/radiate_centercrop'
     dataset = Radiate_Dataset(data_folder, train_mode, transform=True)
 
     img_radar_save = os.path.join(root_dir, train_mode, 'images_radar')
     img_lidar_save = os.path.join(root_dir, train_mode, 'images_lidar')
-    # img_add_save = os.path.join(root_dir, train_mode, 'images_add')
+    img_add_save = os.path.join(root_dir, train_mode, 'images_add')
     
     lidar_save = os.path.join(root_dir, train_mode, 'lidar_info')
     
@@ -78,7 +78,7 @@ def main():
     img_info_save = os.path.join(root_dir, train_mode, 'img_info')
     os.makedirs(img_radar_save, exist_ok=True)
     os.makedirs(img_lidar_save, exist_ok=True)
-    # os.makedirs(img_add_save, exist_ok=True)
+    os.makedirs(img_add_save, exist_ok=True)
     os.makedirs(label_save, exist_ok=True)
     os.makedirs(label_angle_save, exist_ok=True)
     os.makedirs(label_OBB_save, exist_ok=True)
@@ -87,14 +87,15 @@ def main():
 
     for i in tqdm(range(len(dataset))):
         img_radar, img_lidar, target, img_info = dataset[i]
-        # img_add = img_radar+img_lidar
+        img_add = img_radar+img_lidar
+        img_add = np.clip(img_add, 0, 255)
         file_name = target['file_name']
         bbox = target['bboxes']
         bbox_angle = target['bboxes_angle']
         category = target['category_id']
         img_radar_save_path = os.path.join(img_radar_save, str(i).zfill(5)+'.png')
         img_lidar_save_path = os.path.join(img_lidar_save, str(i).zfill(5)+'.png')
-        # img_add_save_path = os.path.join(img_add_save, str(i).zfill(5)+'.png')
+        img_add_save_path = os.path.join(img_add_save, str(i).zfill(5)+'.png')
         lidar_info_save_path = os.path.join(lidar_save, str(i).zfill(5)+'.csv')
         label_save_path = os.path.join(label_save, str(i).zfill(5)+'.txt')
         label_angle_save_path = os.path.join(label_angle_save, str(i).zfill(5)+'.txt')
@@ -106,7 +107,7 @@ def main():
         cv2.imwrite(img_radar_save_path, img_radar)
         cv2.imwrite(img_lidar_save_path, img_lidar)
         shutil.copy2(img_info['lidar_path'], lidar_info_save_path)
-        # cv2.imwrite(img_add_save_path, img_add)
+        cv2.imwrite(img_add_save_path, img_add)
         
         # save HBB (cx, cy, wid, hei)
         with open(label_save_path, 'w') as f:
@@ -119,7 +120,7 @@ def main():
                 hei = bbox[j][3] - bbox[j][1]
                 f.write("%i %.6f %.6f %.6f %.6f \n" % (category[j], cx, cy, wid, hei))
                 
-        # save OBB(cx, cy, wid, hei, angle)
+        # # save OBB(cx, cy, wid, hei, angle)
         with open(label_angle_save_path,"w") as f:
             for j in range(bbox_angle.shape[0]):
                 # print("%i %.6f %.6f %.6f %.6f" % (category[j], bbox[j][0], bbox[j][1], bbox[j][2], bbox[j][3]))
@@ -167,7 +168,6 @@ def main():
         
         with open(img_info_save_path, 'w', encoding='utf-8') as f:
             json.dump(img_info, f)
-
         
     
     

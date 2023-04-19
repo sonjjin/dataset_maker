@@ -18,6 +18,7 @@ class Radiate_Dataset(torch.utils.data.Dataset):
         for curr_dir in os.listdir(self.root_dir):
             with open(os.path.join(self.root_dir, curr_dir, 'meta.json')) as f:
                 meta = json.load(f)
+            # print(curr_dir, meta["set"])
             if meta["set"] == train_mode:
                 self.folders.append(curr_dir)
         self.folders.sort()
@@ -90,29 +91,33 @@ class Radiate_Dataset(torch.utils.data.Dataset):
         lidar_img = output['sensors']['lidar_bev_image']
         if self.transform:
             data_transform = albumentations.Compose([
-                albumentations.CenterCrop(512,512)],
+                albumentations.CenterCrop(256,256)],
                 # albumentations.pytorch.transforms.ToTensorV2()],
                 bbox_params=albumentations.BboxParams(format='pascal_voc', label_fields=['labels']),
                 )
             data_transform_yolo = albumentations.Compose([
-                albumentations.CenterCrop(512,512)],
+                albumentations.CenterCrop(256,256)],
                 # albumentations.pytorch.transforms.ToTensorV2()],
                 bbox_params=albumentations.BboxParams(format='yolo', label_fields=['labels']),
                 )
             data_transform_lidar = albumentations.Compose([
+                albumentations.CenterCrop(256,256)])
+            
+            data_transform_lidar_512 = albumentations.Compose([
                 albumentations.CenterCrop(512,512)])
-
             transformed = data_transform(image = img, bboxes = target['bboxes'], labels = target["category_id"])
             transformed_2 = data_transform_yolo(image = img, bboxes = target['bboxes_angle'], labels = target["category_id"])
             transformed_3 = data_transform_lidar(image = lidar_img)
+            transformed_4 = data_transform_lidar_512(image = lidar_img)
             img = transformed['image']
             target['bboxes'] = torch.as_tensor(transformed['bboxes'], dtype=torch.float32)
             target['category_id'] = torch.as_tensor(transformed['labels'], dtype=torch.float32)
             target['bboxes_angle'] = torch.as_tensor(transformed_2['bboxes'], dtype=torch.float32)
             lidar_img = transformed_3['image']
+            lidar_img_512 = transformed_4['image']
             # labels = transformed['labels']
         
-        return img, lidar_img, target, img_info
+        return img, lidar_img, lidar_img_512, target, img_info
     
 
 
@@ -175,8 +180,8 @@ class Radiate_Dataset(torch.utils.data.Dataset):
             folder_number = idx
             radar_files = os.listdir(radar_folder)
             radar_files.sort()
-            # print(radar_files)
-            
+            # print(radar_folder, len(radar_files))
+            # print(radar_folder)
             for frame_number in range(len(radar_files)):
                 # if folder_number == 0:
                 #     print(frame_number)

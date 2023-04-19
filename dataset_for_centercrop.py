@@ -162,8 +162,8 @@ class Radiate_Dataset(torch.utils.data.Dataset):
             folder_number = idx
             radar_files = os.listdir(radar_folder)
             radar_files.sort()
-            # print(radar_files)
-            
+            # print(radar_files[-1])
+            print(radar_folder)
             for frame_number in range(len(radar_files)):
                 # if folder_number == 0:
                 #     print(frame_number)
